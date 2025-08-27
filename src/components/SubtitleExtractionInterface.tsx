@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import FileUpload from './FileUpload';
 import VideoPlayer from './VideoPlayer';
 import SubtitleTrack from './SubtitleTrack';
+import LanguagePreSubmit from './LanguagePreSubmit';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ const SubtitleExtractionInterface: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPreSubmit, setShowPreSubmit] = useState(false);
   const [languageTracks, setLanguageTracks] = useState<LanguageTrack[]>([]);
   const [projectName, setProjectName] = useState('Untitled Project');
   const { toast } = useToast();
@@ -49,15 +51,26 @@ const SubtitleExtractionInterface: React.FC = () => {
     ]
   };
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = (file: File) => {
     setSelectedFile(file);
+    setShowPreSubmit(true);
+  };
+
+  const handlePreSubmitCancel = () => {
+    setSelectedFile(null);
+    setShowPreSubmit(false);
+    setVideoUrl('');
+  };
+
+  const handleGenerate = async (opts: { file: File; language: string; translateToEnglish: boolean }) => {
+    setShowPreSubmit(false);
     setIsProcessing(true);
     
     // Create a URL for the video preview
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(opts.file);
     setVideoUrl(url);
 
-    // Mock API call to extract subtitles
+    // Mock API call to extract subtitles - in real implementation, pass opts.language and opts.translateToEnglish
     setTimeout(() => {
       const tracks: LanguageTrack[] = [
         {
@@ -66,22 +79,26 @@ const SubtitleExtractionInterface: React.FC = () => {
           flag: '🇧🇷',
           subtitles: mockSubtitles.pt,
           enabled: true
-        },
-        {
+        }
+      ];
+
+      // Add English track if translation is enabled
+      if (opts.translateToEnglish) {
+        tracks.push({
           language: 'English',
           languageCode: 'en',
           flag: '🇺🇸',
           subtitles: mockSubtitles.en,
           enabled: true
-        }
-      ];
+        });
+      }
       
       setLanguageTracks(tracks);
       setIsProcessing(false);
       
       toast({
         title: "Subtitles Extracted",
-        description: "Audio has been processed and subtitles generated successfully.",
+        description: `Audio processed in ${opts.language} ${opts.translateToEnglish ? 'with English translation' : ''}`,
       });
     }, 3000);
   };
@@ -120,6 +137,28 @@ const SubtitleExtractionInterface: React.FC = () => {
           </div>
           
           <FileUpload onFileSelect={handleFileSelect} />
+        </div>
+      </div>
+    );
+  }
+
+  // Show pre-submit panel after file selection
+  if (showPreSubmit && selectedFile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold mb-2">Configure Subtitle Generation</h1>
+            <p className="text-muted-foreground">
+              Choose your audio language and translation preferences
+            </p>
+          </div>
+          
+          <LanguagePreSubmit
+            file={selectedFile}
+            onCancel={handlePreSubmitCancel}
+            onGenerate={handleGenerate}
+          />
         </div>
       </div>
     );
