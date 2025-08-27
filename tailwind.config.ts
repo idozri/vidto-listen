@@ -61,7 +61,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				'video-bg': 'hsl(var(--video-bg))',
+				'video-controls': 'hsl(var(--video-controls))',
+				'subtitle-bg': 'hsl(var(--subtitle-bg))',
+				timeline: 'hsl(var(--timeline))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
